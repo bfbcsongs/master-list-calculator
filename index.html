@@ -179,7 +179,7 @@
         
         let state = JSON.parse(localStorage.getItem('master_calc_state')) || {
             names: Array(ROWS).fill(''),
-            qtys: Array(ROWS).fill().(() => ({r:'', p:'', l:'', m:'', c:'', bo:''})),
+            qtys: Array(ROWS).fill().map(() => ({r:'', p:'', l:'', m:'', c:'', bo:''})),
             locked: true
         };
 
@@ -263,7 +263,7 @@
         // Clear quantities only, preserve names
         document.getElementById('clear-btn').addEventListener('click', () => {
             if (confirm('Clear all quantities? Names will be kept.')) {
-                state.qtys = Array(ROWS).fill().(() => ({r:'', p:'', l:'', m:'', c:'', bo:''}));
+                state.qtys = Array(ROWS).fill().map(() => ({r:'', p:'', l:'', m:'', c:'', bo:''}));
                 saveState();
                 renderGrid();
             }
@@ -334,7 +334,7 @@
             }
         });
 
-        renderApp();
+        renderGrid();
     </script>
 </body>
 </html>
