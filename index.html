@@ -4,21 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Master List Calculator</title>
-    <script>
-        const manifestData = {
-            "name": "Master List Calculator",
-            "short_name": "Calculator",
-            "start_url": "./",
-            "display": "standalone",
-            "background_color": "#ffffff",
-            "theme_color": "#107c41"
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
-        const linkTag = document.createElement('link');
-        linkTag.rel = 'manifest';
-        linkTag.href = URL.createObjectURL(manifestBlob);
-        document.head.appendChild(linkTag);
-    </script>
     <style>
         * {
             box-sizing: border-box;
