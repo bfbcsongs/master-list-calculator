@@ -1,7 +1,9 @@
 {
   "name": "Master List Calculator",
   "short_name": "Master List",
+  "description": "Master List Calculator by paulm",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#107c41",
