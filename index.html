@@ -4,14 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Master List Calculator</title>
-    <link rel="manifest" href="data:application/manifest+json,{
-        &quot;name&quot;: &quot;Master List Calculator&quot;,
-        &quot;short_name&quot;: &quot;Calculator&quot;,
-        &quot;start_url&quot;: &quot;./&quot;,
-        &quot;display&quot;: &quot;standalone&quot;,
-        &quot;background_color&quot;: &quot;#ffffff&quot;,
-        &quot;theme_color&quot;: &quot;#107c41&quot;
-    }">
+    <script>
+        // Dynamically inject a valid manifest link via Blob to satisfy PWA installation requirements cleanly in one file
+        const manifestData = {
+            "name": "Master List Calculator",
+            "short_name": "Calculator",
+            "start_url": "./",
+            "display": "standalone",
+            "background_color": "#ffffff",
+            "theme_color": "#107c41"
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        const linkTag = document.createElement('link');
+        linkTag.rel = 'manifest';
+        linkTag.href = manifestURL;
+        document.head.appendChild(linkTag);
+    </script>
     <style>
         * {
             box-sizing: border-box;
@@ -293,14 +302,29 @@
 </div>
 
 <script>
-    // Service Worker registration for full offline functional caching
+    // Robust Service Worker registration for offline execution via Cache API
     if ('serviceWorker' in navigator) {
         const swCode = `
-            self.addEventListener('install', e => { self.skipWaiting(); });
-            self.addEventListener('activate', e => { e.waitUntil(clients.claim()); });
+            const CACHE_NAME = 'master-list-v1';
+            self.addEventListener('install', e => {
+                self.skipWaiting();
+            });
+            self.addEventListener('activate', e => {
+                e.waitUntil(clients.claim());
+            });
             self.addEventListener('fetch', e => {
                 e.respondWith(
-                    fetch(e.request).catch(() => caches.match(e.request))
+                    caches.match(e.request).then(cachedResponse => {
+                        return cachedResponse || fetch(e.request).then(networkResponse => {
+                            return caches.open(CACHE_NAME).then(cache => {
+                                cache.put(e.request, networkResponse.clone());
+                                return networkResponse;
+                            });
+                        }).catch(() => {
+                            // Fallback for offline structural loads if necessary
+                            return caches.match('./');
+                        });
+                    })
                 );
             });
         `;
