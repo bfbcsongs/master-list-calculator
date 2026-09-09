@@ -1,0 +1,10 @@
+{
+  "name": "Master List Calculator",
+  "short_name": "Master List",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#107c41",
+  "orientation": "portrait",
+  "icons": []
+}
