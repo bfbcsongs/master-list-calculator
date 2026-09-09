@@ -477,6 +477,451 @@
 
     function toggleAdminMode() {
         const configBox = document.getElementById('configBox');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Master List Calculator</title>
+    <link rel="manifest" href="data:application/manifest+json,{
+        &quot;name&quot;: &quot;Master List Calculator&quot;,
+        &quot;short_name&quot;: &quot;Calculator&quot;,
+        &quot;start_url&quot;: &quot;./&quot;,
+        &quot;display&quot;: &quot;standalone&quot;,
+        &quot;background_color&quot;: &quot;#ffffff&quot;,
+        &quot;theme_color&quot;: &quot;#107c41&quot;
+    }">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            color: #333;
+            padding-bottom: 75px;
+        }
+        .container {
+            padding: 2px;
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+        .config-box {
+            display: none;
+            background: #e9ecef;
+            padding: 6px;
+            border-bottom: 2px solid #ccc;
+            margin-bottom: 4px;
+            width: 100%;
+        }
+        .config-box.visible {
+            display: block;
+        }
+        .config-header {
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+            color: #495057;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+        .prices-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+        }
+        .price-item {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.65rem;
+            background: #fff;
+            padding: 3px;
+            border: 1px solid #ddd;
+            border-radius: 2px;
+        }
+        .price-item label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 1px;
+        }
+        .price-item input {
+            padding: 2px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            text-align: right;
+            font-size: 0.75rem;
+            width: 100%;
+        }
+        .bottom-total-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #107c41;
+            color: white;
+            padding: 6px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            border-top: 2px solid #0b532d;
+            box-shadow: 0 -3px 8px rgba(0,0,0,0.2);
+            z-index: 999;
+        }
+        .bar-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .left-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-arrows-group {
+            display: flex;
+            gap: 3px;
+        }
+        .arrow-btn {
+            background-color: #1a5c34;
+            color: white;
+            border: 1px solid #288f52;
+            width: 28px;
+            height: 28px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .arrow-btn:active {
+            background-color: #0b4222;
+        }
+        .btn-clear-all {
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-clear-all:active {
+            background-color: #c9302c;
+        }
+        .btn-lock {
+            background-color: #ffc107;
+            color: #333;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-lock.unlocked {
+            background-color: #e0a800;
+        }
+        .total-display {
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            font-weight: bold;
+        }
+        .creator-label {
+            font-size: 0.6rem;
+            font-style: italic;
+            color: #d4edda;
+            text-align: right;
+            margin-top: -2px;
+        }
+        .table-wrapper {
+            width: 100%;
+            overflow-x: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #bbb;
+            padding: 4px 1px;
+            text-align: center;
+            font-size: 0.75rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        th {
+            background-color: #107c41;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 3;
+        }
+        th input, td input {
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 0.75rem;
+            outline: none;
+            width: 100%;
+        }
+        th.name-col, td.name-cell {
+            width: 65px;
+            min-width: 65px;
+            text-align: left;
+        }
+        td input.name-input {
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background: #fff;
+            text-align: left;
+            font-weight: bold;
+            font-size: 0.75rem;
+            padding: 2px;
+        }
+        td input.name-input:read-only {
+            background-color: #e9ecef;
+            color: #6c757d;
+            border-color: #ced4da;
+        }
+        th.qty-col, td.qty-cell {
+            width: 35px;
+            min-width: 35px;
+            padding: 4px 0px;
+        }
+        td input.qty-input {
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background: #fff;
+            text-align: right;
+            padding: 2px 0px;
+            font-size: 0.75rem;
+        }
+        th span {
+            color: white;
+            font-weight: bold;
+        }
+        th.amount-col {
+            background-color: #107c41;
+            color: white;
+            font-weight: bold;
+        }
+        td.amount-cell {
+            width: 52px;
+            min-width: 52px;
+            background-color: #f9f9f9;
+            font-weight: bold;
+            text-align: right;
+            padding-right: 2px;
+            font-size: 0.7rem;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="config-box" id="configBox">
+        <div class="config-header">
+            <span>Category Prices (Autosaved)</span>
+            <button style="flex:0; padding:2px 6px; font-size:0.65rem;" onclick="toggleAdminMode()">Close</button>
+        </div>
+        <div class="prices-grid" id="prices-config"></div>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr id="header-row"></tr>
+            </thead>
+            <tbody id="master-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="bottom-total-bar">
+    <div class="bar-row">
+        <div class="left-controls">
+            <button class="btn-clear-all" onclick="clearAllData()">Clear</button>
+            <button class="btn-lock" id="lockBtn" onclick="toggleNamesLock()">🔒 Lock</button>
+            <div class="nav-arrows-group">
+                <button class="arrow-btn" onclick="moveFocus('left')">◄</button>
+                <button class="arrow-btn" onclick="moveFocus('up')">▲</button>
+                <button class="arrow-btn" onclick="moveFocus('down')">▼</button>
+                <button class="arrow-btn" onclick="moveFocus('right')">▶</button>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px; color: white;">
+            <span style="font-weight: bold; font-size: 1rem;">TOTAL:</span>
+            <span class="total-display" id="grand-total">0</span>
+        </div>
+    </div>
+    <div class="creator-label">created by paulm</div>
+</div>
+
+<script>
+    // Register the standard sw.js file for offline caching
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('SW registered!', reg))
+                .catch(err => console.log('SW registration failed', err));
+        });
+    }
+
+    let categories = [
+        { key: 'R', name: 'R', price: 0 },
+        { key: 'P', name: 'P', price: 0 },
+        { key: 'L', name: 'L', price: 0 },
+        { key: 'M', name: 'M', price: 0 },
+        { key: 'C', name: 'C', price: 0 },
+        { key: 'BO', name: 'BO', price: 0 }
+    ];
+
+    let namesLocked = true;
+
+    function loadSavedData() {
+        const savedPrices = localStorage.getItem('master_list_prices');
+        if (savedPrices) {
+            try {
+                let parsedPrices = JSON.parse(savedPrices);
+                categories.forEach(cat => {
+                    if (parsedPrices[cat.key] !== undefined) {
+                        cat.price = parsedPrices[cat.key];
+                    }
+                });
+            } catch (e) {
+                console.error("Error loading prices", e);
+            }
+        }
+
+        const savedRows = localStorage.getItem('master_list_rows');
+        if (savedRows) {
+            try {
+                let parsedRows = JSON.parse(savedRows);
+                if (Array.isArray(parsedRows) && parsedRows.length === 25) {
+                    rows = parsedRows;
+                }
+            } catch (e) {
+                console.error("Error loading rows", e);
+            }
+        }
+    }
+
+    let rows = Array.from({ length: 25 }, () => ({
+        name: "",
+        values: { R: "", P: "", L: "", M: "", C: "", BO: "" }
+    }));
+
+    let adminClicks = 0;
+    let clickTimer = null;
+
+    function renderApp() {
+        loadSavedData();
+        renderPricesConfig();
+        renderTableHeaders();
+        renderTableBody();
+        updateTotals();
+    }
+
+    function renderPricesConfig() {
+        const container = document.getElementById('prices-config');
+        container.innerHTML = '';
+        categories.forEach((cat, index) => {
+            container.innerHTML += `
+                <div class="price-item">
+                    <label>${cat.name} Price:</label>
+                    <input type="number" step="any" value="${cat.price === 0 ? '' : cat.price}" oninput="updateCategoryPrice(${index}, this.value)">
+                </div>
+            `;
+        });
+    }
+
+    function renderTableHeaders() {
+        const headerRow = document.getElementById('header-row');
+        let html = `<th class="name-col" id="secretHeader" style="cursor:pointer;" onclick="handleSecretTap()">Names</th>`;
+        categories.forEach((cat) => {
+            html += `<th class="qty-col"><span>${cat.name}</span></th>`;
+        });
+        html += `<th class="amount-col">Amt</th>`;
+        headerRow.innerHTML = html;
+    }
+
+    function renderTableBody() {
+        const tbody = document.getElementById('master-body');
+        tbody.innerHTML = '';
+
+        rows.forEach((row, rowIndex) => {
+            let rowAmount = calculateRowAmount(row);
+
+            const tr = document.createElement('tr');
+            let readonlyAttr = namesLocked ? 'readonly' : '';
+            let trHtml = `<td class="name-cell"><input type="text" class="name-input" id="row-${rowIndex}-name" value="${row.name}" ${readonlyAttr} oninput="updateRowName(${rowIndex}, this.value)" placeholder="..."></td>`;
+
+            categories.forEach((cat, catIndex) => {
+                let displayVal = row.values[cat.key] === 0 || row.values[cat.key] === "" ? "" : row.values[cat.key];
+                trHtml += `<td class="qty-col"><input type="number" class="qty-input" id="row-${rowIndex}-col-${catIndex}" value="${displayVal}" oninput="updateRowValue(${rowIndex}, '${cat.key}', this.value)"></td>`;
+            });
+
+            trHtml += `<td class="amount-cell" id="amt-${rowIndex}">${Math.round(rowAmount).toLocaleString()}</td>`;
+            tr.innerHTML = trHtml;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function toggleNamesLock() {
+        namesLocked = !namesLocked;
+        const lockBtn = document.getElementById('lockBtn');
+        if (namesLocked) {
+            lockBtn.innerText = "🔒 Lock";
+            lockBtn.classList.remove('unlocked');
+        } else {
+            lockBtn.innerText = "🔓 Unlock";
+            lockBtn.classList.add('unlocked');
+        }
+        renderTableBody();
+    }
+
+    function calculateRowAmount(row) {
+        let otherCategoriesTotal = 0;
+        let boValue = 0;
+
+        categories.forEach(cat => {
+            let val = parseFloat(row.values[cat.key]) || 0;
+            if (cat.key === 'BO') {
+                boValue = (val / 2) * 45;
+            } else {
+                otherCategoriesTotal += (val * cat.price);
+            }
+        });
+
+        return otherCategoriesTotal - boValue;
+    }
+
+    function handleSecretTap() {
+        adminClicks++;
+        clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => {
+            adminClicks = 0;
+        }, 600);
+
+        if (adminClicks >= 5) {
+            adminClicks = 0;
+            toggleAdminMode();
+        }
+    }
+
+    function toggleAdminMode() {
+        const configBox = document.getElementById('configBox');
         configBox.classList.toggle('visible');
     }
 
