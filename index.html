@@ -1,1587 +1,1000 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Master List Calculator</title>
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  <title>Master List Calculator</title>  
 
-<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#107c41">  
+<meta name="mobile-web-app-capable" content="yes">  
+<meta name="apple-mobile-web-app-capable" content="yes">  
+<meta name="apple-mobile-web-app-status-bar-style" content="default">  
+<meta name="apple-mobile-web-app-title" content="Master List">  
 
-<style>
-* {
-    box-sizing: border-box;
-}
+<link rel="manifest" href="./manifest.json">  
 
-body {
-    margin: 0;
-    padding: 8px;
-    font-family: Arial, sans-serif;
-    background: #f5f5f5;
-}
+<style>  
+    * {  
+        box-sizing: border-box;  
+        margin: 0;  
+        padding: 0;  
+    }  
 
-h2 {
-    text-align: center;
-    margin: 4px 0 8px;
-    font-size: 20px;
-}
+    body {  
+        font-family: Arial, sans-serif;  
+        background-color: #fff;  
+        color: #333;  
+        padding-bottom: 75px;  
+    }  
 
-.table-wrap {
-    width: 100%;
-    overflow-x: hidden;
-}
+    .container {  
+        padding: 2px;  
+        max-width: 100vw;  
+        overflow-x: hidden;  
+    }  
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-    background: white;
-}
+    .config-box {  
+        display: none;  
+        background: #e9ecef;  
+        padding: 6px;  
+        border-bottom: 2px solid #ccc;  
+        margin-bottom: 4px;  
+        width: 100%;  
+    }  
 
-th,
-td {
-    border: 1px solid #999;
-    text-align: center;
-    padding: 0;
-    height: 35px;
-}
+    .config-box.visible {  
+        display: block;  
+    }  
 
-th {
-    background: #ddd;
-    font-size: 13px;
-}
+    .config-header {  
+        font-size: 0.75rem;  
+        margin-bottom: 4px;  
+        color: #495057;  
+        display: flex;  
+        justify-content: space-between;  
+        align-items: center;  
+        font-weight: bold;  
+    }  
 
-th.names,
-td.names {
-    width: 35px;
-}
+    .prices-grid {  
+        display: grid;  
+        grid-template-columns: repeat(3, 1fr);  
+        gap: 4px;  
+    }  
 
-th.qty,
-td.qty {
-    width: 35px;
-}
+    .price-item {  
+        display: flex;  
+        flex-direction: column;  
+        font-size: 0.65rem;  
+        background: #fff;  
+        padding: 3px;  
+        border: 1px solid #ddd;  
+        border-radius: 2px;  
+    }  
 
-th.bal,
-td.bal {
-    width: 40px;
-}
+    .price-item label {  
+        font-weight: bold;  
+        color: #333;  
+        margin-bottom: 1px;  
+    }  
 
-th.pay,
-td.pay {
-    width: 40px;
-}
+    .price-item input {  
+        padding: 2px;  
+        border: 1px solid #ccc;  
+        border-radius: 2px;  
+        text-align: right;  
+        font-size: 0.75rem;  
+        width: 100%;  
+    }  
 
-th.amount,
-td.amount {
-    width: auto;
-}
+    .bottom-total-bar {  
+        position: fixed;  
+        bottom: 0;  
+        left: 0;  
+        width: 100%;  
+        background-color: #107c41;  
+        color: white;  
+        padding: 6px 10px;  
+        display: flex;  
+        flex-direction: column;  
+        gap: 4px;  
+        border-top: 2px solid #0b532d;  
+        box-shadow: 0 -3px 8px rgba(0,0,0,0.2);  
+        z-index: 999;  
+    }  
 
-input {
-    width: 100%;
-    height: 34px;
-    border: none;
-    outline: none;
-    text-align: center;
-    font-size: 14px;
-    background: transparent;
-}
+    .bar-row {  
+        display: flex;  
+        justify-content: space-between;  
+        align-items: center;  
+        width: 100%;  
+    }  
 
-.name-input {
-    text-align: left;
-}
+    .left-controls {  
+        display: flex;  
+        align-items: center;  
+        gap: 6px;  
+    }  
 
-.amount-cell {
-    font-weight: bold;
-    font-size: 14px;
-    white-space: nowrap;
-}
+    .nav-arrows-group {  
+        display: flex;  
+        gap: 3px;  
+    }  
 
-.grand-total {
-    margin-top: 8px;
-    padding: 10px;
-    background: #222;
-    color: white;
-    text-align: right;
-    font-size: 18px;
-    font-weight: bold;
-}
+    .arrow-btn {  
+        background-color: #1a5c34;  
+        color: white;  
+        border: 1px solid #288f52;  
+        width: 28px;  
+        height: 28px;  
+        border-radius: 3px;  
+        font-size: 0.8rem;  
+        font-weight: bold;  
+        display: flex;  
+        justify-content: center;  
+        align-items: center;  
+        cursor: pointer;  
+    }  
 
-.bottom-bar {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 52px;
-    background: #198754;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    z-index: 1000;
-    padding: 4px;
-}
+    .arrow-btn:active {  
+        background-color: #0b4222;  
+    }  
 
-.bottom-bar button {
-    border: none;
-    border-radius: 6px;
-    background: white;
-    color: #222;
-    min-width: 48px;
-    height: 40px;
-    font-size: 16px;
-    font-weight: bold;
-}
+    .btn-clear-all {  
+        background-color: #d9534f;  
+        color: white;  
+        border: none;  
+        padding: 4px 8px;  
+        border-radius: 3px;  
+        font-size: 0.75rem;  
+        font-weight: bold;  
+        cursor: pointer;  
+    }  
 
-.bottom-bar button:active {
-    transform: scale(.95);
-}
+    .btn-clear-all:active {  
+        background-color: #c9302c;  
+    }  
 
-.admin-panel {
-    display: none;
-    background: white;
-    border: 1px solid #999;
-    padding: 10px;
-    margin-bottom: 8px;
-}
+    .btn-lock {  
+        background-color: #ffc107;  
+        color: #333;  
+        border: none;  
+        padding: 4px 8px;  
+        border-radius: 3px;  
+        font-size: 0.75rem;  
+        font-weight: bold;  
+        cursor: pointer;  
+    }  
 
-.admin-panel h3 {
-    margin: 0 0 8px;
-}
+    .btn-lock.unlocked {  
+        background-color: #e0a800;  
+    }  
 
-.admin-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 5px;
-}
+    .total-display {  
+        font-size: 1.1rem;  
+        letter-spacing: 0.5px;  
+        font-weight: bold;  
+    }  
 
-.admin-row label {
-    width: 40px;
-    font-weight: bold;
-}
+    .creator-label {  
+        font-size: 0.6rem;  
+        font-style: italic;  
+        color: #d4edda;  
+        text-align: right;  
+        margin-top: -2px;  
+    }  
 
-.admin-row input {
-    border: 1px solid #999;
-    height: 32px;
-    text-align: left;
-    padding: 4px;
-}
+    .table-wrapper {  
+        width: 100%;  
+        overflow-x: auto;  
+    }  
 
-body {
-    padding-bottom: 62px;
-}
+    table {  
+        width: 100%;  
+        border-collapse: collapse;  
+        table-layout: fixed;  
+    }  
+
+    th, td {  
+        border: 1px solid #bbb;  
+        padding: 4px 1px;  
+        text-align: center;  
+        font-size: 0.75rem;  
+        overflow: hidden;  
+        text-overflow: ellipsis;  
+    }  
+
+    th {  
+        background-color: #107c41;  
+        color: white;  
+        position: sticky;  
+        top: 0;  
+        z-index: 3;  
+    }  
+
+    th input, td input {  
+        border: none;  
+        background: transparent;  
+        text-align: center;  
+        font-size: 0.75rem;  
+        outline: none;  
+        width: 100%;  
+    }  
+
+    th.name-col, td.name-cell {  
+        width: 35px;  
+        min-width: 35px;  
+        text-align: left;  
+    }  
+
+    td input.name-input {  
+        width: 100%;  
+        border: 1px solid #ccc;  
+        border-radius: 2px;  
+        background: #fff;  
+        text-align: left;  
+        font-weight: bold;  
+        font-size: 0.75rem;  
+        padding: 2px;  
+    }  
+
+    td input.name-input:read-only {  
+        background-color: #e9ecef;  
+        color: #6c757d;  
+        border-color: #ced4da;  
+    }  
+
+    th.qty-col, td.qty-cell {  
+        width: 35px;  
+        min-width: 35px;  
+        padding: 4px 0px;  
+    }  
+
+    /* Specific sizing for Pay and Bal columns */  
+    th.pay-col, td.pay-cell,  
+    th.bal-col, td.bal-cell {  
+        width: 40px;  
+        min-width: 40px;  
+        padding: 4px 0px;  
+    }  
+
+    td input.qty-input {  
+        width: 100%;  
+        border: 1px solid #ccc;  
+        border-radius: 2px;  
+        background: #fff;  
+        text-align: right;  
+        padding: 2px 0px;  
+        font-size: 0.75rem;  
+    }  
+
+    th span {  
+        color: white;  
+        font-weight: bold;  
+    }  
+
+    /* Amount column takes up the remaining space dynamically */  
+    th.amount-col, td.amount-cell {  
+        background-color: #f9f9f9;  
+        font-weight: bold;  
+        text-align: right;  
+        padding-right: 2px;  
+        font-size: 0.7rem;  
+        color: #333;  
+    }  
+
+    th.amount-col {  
+        background-color: #107c41;  
+        color: white;  
+    }  
 </style>
-</head>
 
-<body>
+</head>  <body>  <div class="container">  <div class="config-box" id="configBox">  
 
-<h2>MASTER LIST</h2>
+    <div class="config-header">  
+        <span>Category Prices (Autosaved)</span>  
+        <button  
+            style="flex:0; padding:2px 6px; font-size:0.65rem;"  
+            onclick="toggleAdminMode()">  
+            Close  
+        </button>  
+    </div>  
 
-<div id="adminPanel" class="admin-panel">
-    <h3>Admin Prices</h3>
+    <div class="prices-grid" id="prices-config"></div>  
 
-    <div class="admin-row">
-        <label>R</label>
-        <input id="priceR" type="number">
-    </div>
+</div>  
 
-    <div class="admin-row">
-        <label>P</label>
-        <input id="priceP" type="number">
-    </div>
+<div class="table-wrapper">  
 
-    <div class="admin-row">
-        <label>L</label>
-        <input id="priceL" type="number">
-    </div>
+    <table>  
 
-    <div class="admin-row">
-        <label>M</label>
-        <input id="priceM" type="number">
-    </div>
+        <thead>  
+            <tr id="header-row"></tr>  
+        </thead>  
 
-    <div class="admin-row">
-        <label>C</label>
-        <input id="priceC" type="number">
-    </div>
+        <tbody id="master-body"></tbody>  
 
-    <div class="admin-row">
-        <label>BO</label>
-        <input id="priceBO" type="number">
-    </div>
-
-    <button onclick="savePrices()">SAVE PRICES</button>
-</div>
-
-<div class="table-wrap">
-<table>
-    <thead>
-        <tr>
-            <th class="names" id="namesHeader">Names</th>
-            <th class="qty">R</th>
-            <th class="qty">P</th>
-            <th class="qty">L</th>
-            <th class="qty">M</th>
-            <th class="qty">C</th>
-            <th class="qty">BO</th>
-            <th class="bal">Bal</th>
-            <th class="pay">Pay</th>
-            <th class="amount">Amount</th>
-        </tr>
-    </thead>
-
-    <tbody id="tableBody"></tbody>
-</table>
-</div>
-
-<div class="grand-total">
-    GRAND TOTAL:
-    <span id="grandTotal">0.00</span>
-</div>
-
-<div class="bottom-bar">
-    <button onclick="clearQuantities()">Clear</button>
-    <button onclick="toggleLock()" id="lockButton">🔒</button>
-    <button onclick="moveInput('left')">◄</button>
-    <button onclick="moveInput('up')">▲</button>
-    <button onclick="moveInput('down')">▼</button>
-    <button onclick="moveInput('right')">▶</button>
-</div>
-
-<script>
-
-const ROWS = 25;
-
-let namesLocked = true;
-
-let prices = JSON.parse(
-    localStorage.getItem("master_list_prices") || "{}"
-);
-
-const defaultPrices = {
-    R: 0,
-    P: 0,
-    L: 0,
-    M: 0,
-    C: 0,
-    BO: 45
-};
-
-prices = {
-    ...defaultPrices,
-    ...prices
-};
-
-let rows = JSON.parse(
-    localStorage.getItem("master_list_rows") || "[]"
-);
-
-while (rows.length < ROWS) {
-    rows.push({
-        name: "",
-        R: "",
-        P: "",
-        L: "",
-        M: "",
-        C: "",
-        BO: "",
-        Bal: "",
-        Pay: ""
-    });
-}
-
-rows = rows.slice(0, ROWS);
-
-/* Make sure older saved versions receive Bal and Pay */
-rows.forEach(row => {
-    if (row.Bal === undefined) row.Bal = "";
-    if (row.Pay === undefined) row.Pay = "";
-});
-
-function escapeHtml(value) {
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-function saveRows() {
-    localStorage.setItem(
-        "master_list_rows",
-        JSON.stringify(rows)
-    );
-}
-
-function calculateBaseAmount(row) {
-
-    let total = 0;
-
-    total += Number(row.R || 0) * Number(prices.R || 0);
-    total += Number(row.P || 0) * Number(prices.P || 0);
-    total += Number(row.L || 0) * Number(prices.L || 0);
-    total += Number(row.M || 0) * Number(prices.M || 0);
-    total += Number(row.C || 0) * Number(prices.C || 0);
-
-    /* BO is deducted */
-    total -= (Number(row.BO || 0) / 2) * Number(prices.BO || 45);
-
-    return total;
-}
-
-function calculateRowAmount(row) {
-
-    const baseAmount = calculateBaseAmount(row);
-
-    const bal = Number(row.Bal || 0);
-    const pay = Number(row.Pay || 0);
-
-    /*
-       FINAL AMOUNT
-       = RPLMCBO calculated amount
-       + Bal
-       - Pay
-    */
-
-    return baseAmount + bal - pay;
-}
-
-function formatAmount(value) {
-    return Number(value || 0).toFixed(2);
-}
-
-function renderTable() {
-
-    const tbody = document.getElementById("tableBody");
-
-    tbody.innerHTML = "";
-
-    rows.forEach((row, index) => {
-
-        const tr = document.createElement("tr");
-
-        tr.innerHTML = `
-            <td class="names">
-                <input
-                    class="name-input"
-                    data-row="${index}"
-                    data-col="0"
-                    value="${escapeHtml(row.name)}"
-                    ${namesLocked ? "readonly" : ""}
-                    onchange="updateName(${index}, this.value)"
-                >
-            </td>
-
-            <td class="qty">
-                <input
-                    type="number"
-                    inputmode="decimal"
-                    data-row="${index}"
-                    data-col="1"
-                    value="${row.R}"
-                    onchange="updateValue(${index}, 'R', this.value)"
-                >
-            </td>
-
-            <td class="qty">
-                <input
-                    type="number"
-                    inputmode="decimal"
-                    data-row="${index}"
-                    data-col="2"
-                    value="${row.P}"
-                    onchange="updateValue(${index}, 'P', this.value)"
-                >
-            </td>
-
-            <td class="qty">
-                <input
-                    type="number"
-                    inputmode="decimal"
-                    data-row="${index}"
-                    data-col="3"
-                    value="${row.L}"
-                    onchange="updateValue(${index}, 'L', this.value)"
-                >
-            </td>
-
-            <td class="qty">
-                <input
-                    type="number"
-                    inputmode="decimal"
-                    data-row="${index}"
-                    data-col="4"
-                    value="${row.M}"
-                    onchange="updateValue(${index}, 'M', this.value)"
-                >
-            </td>
-
-            <td class="qty">
-                <input
-                    type="number"
-                    inputmode="decimal"
-                    data-row="${index}"
-                    data-col="5"
-                    value="${row.C}"
-                    onchange="updateValue(${index}, 'C', this.value)"
-                >
-            </td>
-
-            <td class="qty">
-                <input
-                    type="number"
-                    inputmode="decimal"
-                    data-row="${index}"
-                    data-col="6"
-                    value="${row.BO}"
-                    onchange="updateValue(${index}, 'BO', this.value)"
-                >
-            </td>
-
-            <td class="bal">
-                <input
-                    type="number"
-                    inputmode="decimal"
-                    data-row="${index}"
-                    data-col="7"
-                    value="${row.Bal}"
-                    onchange="updateValue(${index}, 'Bal', this.value)"
-                >
-            </td>
-
-            <td class="pay">
-                <input
-                    type="number"
-                    inputmode="decimal"
-                    data-row="${index}"
-                    data-col="8"
-                    value="${row.Pay}"
-                    onchange="updateValue(${index}, 'Pay', this.value)"
-                >
-            </td>
-
-            <td class="amount amount-cell" id="amount-${index}">
-                ${formatAmount(calculateRowAmount(row))}
-            </td>
-        `;
-
-        tbody.appendChild(tr);
-    });
-
-    updateGrandTotal();
-}
-
-function updateName(index, value) {
-
-    rows[index].name = value;
-
-    saveRows();
-}
-
-function updateValue(index, field, value) {
-
-    rows[index][field] = value;
-
-    saveRows();
-
-    updateAmount(index);
-}
-
-function updateAmount(index) {
-
-    const amount = calculateRowAmount(rows[index]);
-
-    const cell = document.getElementById(
-        `amount-${index}`
-    );
-
-    if (cell) {
-        cell.textContent = formatAmount(amount);
-    }
-
-    updateGrandTotal();
-}
-
-function updateGrandTotal() {
-
-    let total = 0;
-
-    rows.forEach(row => {
-        total += calculateRowAmount(row);
-    });
-
-    document.getElementById("grandTotal").textContent =
-        formatAmount(total);
-}
-
-function clearQuantities() {
-
-    if (!confirm("Clear all quantities, Bal and Pay?")) {
-        return;
-    }
-
-    rows.forEach(row => {
-        row.R = "";
-        row.P = "";
-        row.L = "";
-        row.M = "";
-        row.C = "";
-        row.BO = "";
-        row.Bal = "";
-        row.Pay = "";
-    });
-
-    saveRows();
-
-    renderTable();
-}
-
-function toggleLock() {
-
-    namesLocked = !namesLocked;
-
-    document.getElementById("lockButton").textContent =
-        namesLocked ? "🔒" : "🔓";
-
-    renderTable();
-}
-
-/* Five taps on Names header opens admin */
-let nameHeaderTaps = 0;
-let tapTimer = null;
-
-document.getElementById("namesHeader")
-    .addEventListener("click", () => {
-
-        nameHeaderTaps++;
-
-        clearTimeout(tapTimer);
-
-        tapTimer = setTimeout(() => {
-            nameHeaderTaps = 0;
-        }, 1000);
-
-        if (nameHeaderTaps >= 5) {
-
-            nameHeaderTaps = 0;
-
-            const panel =
-                document.getElementById("adminPanel");
-
-            panel.style.display =
-                panel.style.display === "block"
-                    ? "none"
-                    : "block";
-
-            loadPrices();
-        }
-    });
-
-function loadPrices() {
-
-    document.getElementById("priceR").value = prices.R;
-    document.getElementById("priceP").value = prices.P;
-    document.getElementById("priceL").value = prices.L;
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-    <title>Master List Calculator</title>
-
-    <meta name="theme-color" content="#107c41">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Master List">
-
-    <link rel="manifest" href="./manifest.json">
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #fff;
-            color: #333;
-            padding-bottom: 75px;
-        }
-
-        .container {
-            padding: 2px;
-            max-width: 100vw;
-            overflow-x: hidden;
-        }
-
-        .config-box {
-            display: none;
-            background: #e9ecef;
-            padding: 6px;
-            border-bottom: 2px solid #ccc;
-            margin-bottom: 4px;
-            width: 100%;
-        }
-
-        .config-box.visible {
-            display: block;
-        }
-
-        .config-header {
-            font-size: 0.75rem;
-            margin-bottom: 4px;
-            color: #495057;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-        }
-
-        .prices-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 4px;
-        }
-
-        .price-item {
-            display: flex;
-            flex-direction: column;
-            font-size: 0.65rem;
-            background: #fff;
-            padding: 3px;
-            border: 1px solid #ddd;
-            border-radius: 2px;
-        }
-
-        .price-item label {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 1px;
-        }
-
-        .price-item input {
-            padding: 2px;
-            border: 1px solid #ccc;
-            border-radius: 2px;
-            text-align: right;
-            font-size: 0.75rem;
-            width: 100%;
-        }
-
-        .bottom-total-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: #107c41;
-            color: white;
-            padding: 6px 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            border-top: 2px solid #0b532d;
-            box-shadow: 0 -3px 8px rgba(0,0,0,0.2);
-            z-index: 999;
-        }
-
-        .bar-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
-
-        .left-controls {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .nav-arrows-group {
-            display: flex;
-            gap: 3px;
-        }
-
-        .arrow-btn {
-            background-color: #1a5c34;
-            color: white;
-            border: 1px solid #288f52;
-            width: 28px;
-            height: 28px;
-            border-radius: 3px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .arrow-btn:active {
-            background-color: #0b4222;
-        }
-
-        .btn-clear-all {
-            background-color: #d9534f;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 3px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn-clear-all:active {
-            background-color: #c9302c;
-        }
-
-        .btn-lock {
-            background-color: #ffc107;
-            color: #333;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 3px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn-lock.unlocked {
-            background-color: #e0a800;
-        }
-
-        .total-display {
-            font-size: 1.1rem;
-            letter-spacing: 0.5px;
-            font-weight: bold;
-        }
-
-        .creator-label {
-            font-size: 0.6rem;
-            font-style: italic;
-            color: #d4edda;
-            text-align: right;
-            margin-top: -2px;
-        }
-
-        .table-wrapper {
-            width: 100%;
-            overflow-x: hidden;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-
-        th, td {
-            border: 1px solid #bbb;
-            padding: 4px 1px;
-            text-align: center;
-            font-size: 0.75rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        th {
-            background-color: #107c41;
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 3;
-        }
-
-        th input, td input {
-            border: none;
-            background: transparent;
-            text-align: center;
-            font-size: 0.75rem;
-            outline: none;
-            width: 100%;
-        }
-
-        /* NAME = 35px */
-        th.name-col, td.name-cell {
-            width: 35px;
-            min-width: 35px;
-            max-width: 35px;
-            text-align: left;
-        }
-
-        td input.name-input {
-            width: 100%;
-            border: 1px solid #ccc;
-            border-radius: 2px;
-            background: #fff;
-            text-align: left;
-            font-weight: bold;
-            font-size: 0.75rem;
-            padding: 2px;
-        }
-
-        td input.name-input:read-only {
-            background-color: #e9ecef;
-            color: #6c757d;
-            border-color: #ced4da;
-        }
-
-        /* R P L M C BO = 35px */
-        th.qty-col, td.qty-cell {
-            width: 35px;
-            min-width: 35px;
-            max-width: 35px;
-            padding: 4px 0px;
-        }
-
-        td input.qty-input {
-            width: 100%;
-            border: 1px solid #ccc;
-            border-radius: 2px;
-            background: #fff;
-            text-align: right;
-            padding: 2px 0px;
-            font-size: 0.75rem;
-        }
-
-        /* PAY and BAL = 40px */
-        th.pay-col, td.pay-cell,
-        th.bal-col, td.bal-cell {
-            width: 40px;
-            min-width: 40px;
-            max-width: 40px;
-            padding: 4px 0px;
-        }
-
-        td input.pay-input,
-        td input.bal-input {
-            width: 100%;
-            border: 1px solid #ccc;
-            border-radius: 2px;
-            background: #fff;
-            text-align: right;
-            padding: 2px 0px;
-            font-size: 0.75rem;
-        }
-
-        th span {
-            color: white;
-            font-weight: bold;
-        }
-
-        th.amount-col {
-            background-color: #107c41;
-            color: white;
-            font-weight: bold;
-            width: auto;
-        }
-
-        /* AMOUNT = remaining available width */
-        td.amount-cell {
-            width: auto;
-            min-width: 0;
-            background-color: #f9f9f9;
-            font-weight: bold;
-            text-align: right;
-            padding-right: 2px;
-            font-size: 0.7rem;
-            color: #333;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="container">
-
-    <div class="config-box" id="configBox">
-
-        <div class="config-header">
-            <span>Category Prices (Autosaved)</span>
-            <button
-                style="flex:0; padding:2px 6px; font-size:0.65rem;"
-                onclick="toggleAdminMode()">
-                Close
-            </button>
-        </div>
-
-        <div class="prices-grid" id="prices-config"></div>
-
-    </div>
-
-    <div class="table-wrapper">
-
-        <table>
-
-            <thead>
-                <tr id="header-row"></tr>
-            </thead>
-
-            <tbody id="master-body"></tbody>
-
-        </table>
-
-    </div>
+    </table>  
 
 </div>
 
-<div class="bottom-total-bar">
+</div>  <div class="bottom-total-bar">  <div class="bar-row">  
 
-    <div class="bar-row">
+    <div class="left-controls">  
 
-        <div class="left-controls">
+        <button  
+            class="btn-clear-all"  
+            onclick="clearAllData()">  
+            Clear  
+        </button>  
 
-            <button
-                class="btn-clear-all"
-                onclick="clearAllData()">
-                Clear
-            </button>
+        <button  
+            class="btn-lock"  
+            id="lockBtn"  
+            onclick="toggleNamesLock()">  
+            🔒 Lock  
+        </button>  
 
-            <button
-                class="btn-lock"
-                id="lockBtn"
-                onclick="toggleNamesLock()">
-                🔒 Lock
-            </button>
+        <div class="nav-arrows-group">  
 
-            <div class="nav-arrows-group">
+            <button  
+                class="arrow-btn"  
+                onclick="moveFocus('left')">  
+                ◄  
+            </button>  
 
-                <button
-                    class="arrow-btn"
-                    onclick="moveFocus('left')">
-                    ◄
-                </button>
+            <button  
+                class="arrow-btn"  
+                onclick="moveFocus('up')">  
+                ▲  
+            </button>  
 
-                <button
-                    class="arrow-btn"
-                    onclick="moveFocus('up')">
-                    ▲
-                </button>
+            <button  
+                class="arrow-btn"  
+                onclick="moveFocus('down')">  
+                ▼  
+            </button>  
 
-                <button
-                    class="arrow-btn"
-                    onclick="moveFocus('down')">
-                    ▼
-                </button>
+            <button  
+                class="arrow-btn"  
+                onclick="moveFocus('right')">  
+                ▶  
+            </button>  
 
-                <button
-                    class="arrow-btn"
-                    onclick="moveFocus('right')">
-                    ▶
-                </button>
+        </div>  
 
-            </div>
+    </div>  
 
-        </div>
+    <div style="display:flex;align-items:center;gap:6px;color:white;">  
 
-        <div style="display:flex;align-items:center;gap:6px;color:white;">
+        <span style="font-weight:bold;font-size:1rem;">  
+            TOTAL:  
+        </span>  
 
-            <span style="font-weight:bold;font-size:1rem;">
-                TOTAL:
-            </span>
+        <span  
+            class="total-display"  
+            id="grand-total">  
+            0  
+        </span>  
 
-            <span
-                class="total-display"
-                id="grand-total">
-                0
-            </span>
+    </div>  
 
-        </div>
+</div>  
 
-    </div>
-
-    <div class="creator-label">
-        created by paulm
-    </div>
-
+<div class="creator-label">  
+    created by paulm  
 </div>
 
-<script>
-
-let categories = [
-    { key: 'R', name: 'R', price: 0 },
-    { key: 'P', name: 'P', price: 0 },
-    { key: 'L', name: 'L', price: 0 },
-    { key: 'M', name: 'M', price: 0 },
-    { key: 'C', name: 'C', price: 0 },
-    { key: 'BO', name: 'BO', price: 0 }
-];
-
-let namesLocked = true;
-
-let rows = Array.from(
-    { length: 25 },
-    () => ({
-        name: "",
-        values: {
-            R: "",
-            P: "",
-            L: "",
-            M: "",
-            C: "",
-            BO: ""
-        },
-        pay: "",
-        bal: ""
-    })
-);
-
-let adminClicks = 0;
-let clickTimer = null;
-
-function loadSavedData() {
-
-    const savedPrices =
-        localStorage.getItem('master_list_prices');
-
-    if (savedPrices) {
-
-        try {
-
-            const parsedPrices =
-                JSON.parse(savedPrices);
-
-            categories.forEach(cat => {
-
-                if (parsedPrices[cat.key] !== undefined) {
-                    cat.price = parsedPrices[cat.key];
-                }
-
-            });
-
-        } catch (e) {
-            console.error("Error loading prices", e);
-        }
-
-    }
-
-    const savedRows =
-        localStorage.getItem('master_list_rows');
-
-    if (savedRows) {
-
-        try {
-
-            const parsedRows =
-                JSON.parse(savedRows);
-
-            if (
-                Array.isArray(parsedRows) &&
-                parsedRows.length === 25
-            ) {
-                rows = parsedRows;
-            }
-
-        } catch (e) {
-            console.error("Error loading rows", e);
-        }
-
-    }
-
-    /* Add Pay and Bal to older saved rows */
-    rows.forEach(row => {
-
-        if (row.pay === undefined) {
-            row.pay = "";
-        }
-
-        if (row.bal === undefined) {
-            row.bal = "";
-        }
-
-    });
-
-}
-
-function renderApp() {
-
-    loadSavedData();
-
-    renderPricesConfig();
-
-    renderTableHeaders();
-
-    renderTableBody();
-
-    updateTotals();
-
-}
-
-function renderPricesConfig() {
-
-    const container =
-        document.getElementById('prices-config');
-
-    container.innerHTML = '';
-
-    categories.forEach((cat, index) => {
-
-        container.innerHTML += `
-            <div class="price-item">
-
-                <label>${cat.name} Price:</label>
-
-                <input
-                    type="number"
-                    step="any"
-                    value="${cat.price === 0 ? '' : cat.price}"
-                    oninput="updateCategoryPrice(${index}, this.value)">
-
-            </div>
-        `;
-
-    });
-
-}
-
-function renderTableHeaders() {
-
-    const headerRow =
-        document.getElementById('header-row');
-
-    let html = `
-        <th
-            class="name-col"
-            id="secretHeader"
-            style="cursor:pointer;"
-            onclick="handleSecretTap()">
-            Names
-        </th>
-    `;
-
-    categories.forEach(cat => {
-
-        html += `
-            <th class="qty-col">
-                <span>${cat.name}</span>
-            </th>
-        `;
-
-    });
-
-    /* PAY = 40px */
-    html += `
-        <th class="pay-col">
-            Pay
-        </th>
-    `;
-
-    /* BAL = 40px */
-    html += `
-        <th class="bal-col">
-            Bal
-        </th>
-    `;
-
-    /* AMOUNT = remaining width */
-    html += `
-        <th class="amount-col">
-            Amt
-        </th>
-    `;
-
-    headerRow.innerHTML = html;
-
-}
-
-function renderTableBody() {
-
-    const tbody =
-        document.getElementById('master-body');
-
-    tbody.innerHTML = '';
-
-    rows.forEach((row, rowIndex) => {
-
-        const rowAmount =
-            calculateRowAmount(row);
-
-        const tr =
-            document.createElement('tr');
-
-        const readonlyAttr =
-            namesLocked ? 'readonly' : '';
-
-        let trHtml = `
-            <td class="name-cell">
-
-                <input
-                    type="text"
-                    class="name-input"
-                    id="row-${rowIndex}-name"
-                    value="${row.name}"
-                    ${readonlyAttr}
-                    oninput="updateRowName(${rowIndex}, this.value)"
-                    placeholder="...">
-
-            </td>
-        `;
-
-        categories.forEach((cat, catIndex) => {
-
-            const displayVal =
-                row.values[cat.key] === 0 ||
-                row.values[cat.key] === ""
-                    ? ""
-                    : row.values[cat.key];
-
-            trHtml += `
-                <td class="qty-cell">
-
-                    <input
-                        type="number"
-                        class="qty-input"
-                        id="row-${rowIndex}-col-${catIndex}"
-                        value="${displayVal}"
-                        oninput="updateRowValue(${rowIndex}, '${cat.key}', this.value)">
-
-                </td>
-            `;
-
-        });
-
-        /* PAY */
-        trHtml += `
-            <td class="pay-cell">
-
-                <input
-                    type="number"
-                    class="pay-input"
-                    id="row-${rowIndex}-pay"
-                    value="${row.pay || ''}"
-                    oninput="updatePay(${rowIndex}, this.value)">
-
-            </td>
-        `;
-
-        /* BAL */
-        trHtml += `
-            <td class="bal-cell">
-
-                <input
-                    type="number"
-                    class="bal-input"
-                    id="row-${rowIndex}-bal"
-                    value="${row.bal || ''}"
-                    oninput="updateBal(${rowIndex}, this.value)">
-
-            </td>
-        `;
-
-        /* AMOUNT */
-        trHtml += `
-            <td
-                class="amount-cell"
-                id="amt-${rowIndex}">
-                ${Math.round(rowAmount).toLocaleString()}
-            </td>
-        `;
-
-        tr.innerHTML = trHtml;
-
-        tbody.appendChild(tr);
-
-    });
-
-}
-
-function toggleNamesLock() {
-
-    namesLocked = !namesLocked;
-
-    const lockBtn =
-        document.getElementById('lockBtn');
-
-    if (namesLocked) {
-
-        lockBtn.innerText = "🔒 Lock";
-
-        lockBtn.classList.remove('unlocked');
-
-    } else {
-
-        lockBtn.innerText = "🔓 Unlock";
-
-        lockBtn.classList.add('unlocked');
-
-    }
-
-    renderTableBody();
-
-}
-
-function calculateRowAmount(row) {
-
-    let otherCategoriesTotal = 0;
-
-    let boValue = 0;
-
-    categories.forEach(cat => {
-
-        const val =
-            parseFloat(row.values[cat.key]) || 0;
-
-        if (cat.key === 'BO') {
-
-            boValue =
-                (val / 2) * 45;
-
-        } else {
-
-            otherCategoriesTotal +=
-                val * cat.price;
-
-        }
-
-    });
-
-    const rplmcboAmount =
-        otherCategoriesTotal - boValue;
-
-    const pay =
-        parseFloat(row.pay) || 0;
-
-    const bal =
-        parseFloat(row.bal) || 0;
-
-    /*
-        FINAL AMOUNT
-        = RPLMCBO + BAL - PAY
-    */
-
-    return rplmcboAmount + bal - pay;
-
-}
-
-function handleSecretTap() {
-
-    adminClicks++;
-
-    clearTimeout(clickTimer);
-
-    clickTimer =
-        setTimeout(() => {
-            adminClicks = 0;
-        }, 600);
-
-    if (adminClicks >= 5) {
-
-        adminClicks = 0;
-
-        toggleAdminMode();
-
-    }
-
-}
-
-function toggleAdminMode() {
-
-    const configBox =
-        document.getElementById('configBox');
-
-    configBox.classList.toggle('visible');
-
-}
-
-function updateCategoryPrice(index, value) {
-
-    categories[index].price =
-        parseFloat(value) || 0;
-
-    let pricesObj = {};
-
-    categories.forEach(cat => {
-
-        pricesObj[cat.key] =
-            cat.price;
-
-    });
-
-    localStorage.setItem(
-        'master_list_prices',
-        JSON.stringify(pricesObj)
-    );
-
-    updateTotals();
-
-}
-
-function saveRowsData() {
-
-    localStorage.setItem(
-        'master_list_rows',
-        JSON.stringify(rows)
-    );
-
-}
-
-function updateRowName(rowIndex, value) {
-
-    rows[rowIndex].name = value;
-
-    saveRowsData();
-
-}
-
-function updateRowValue(
-    rowIndex,
-    catKey,
-    value
-) {
-
-    rows[rowIndex].values[catKey] =
-        value;
-
-    saveRowsData();
-
-    const rowAmount =
-        calculateRowAmount(
-            rows[rowIndex]
-        );
-
-    document.getElementById(
-        `amt-${rowIndex}`
-    ).innerText =
-        Math.round(rowAmount)
-            .toLocaleString();
-
-    updateTotals();
-
-}
-
-function updatePay(rowIndex, value) {
-
-    rows[rowIndex].pay = value;
-
-    saveRowsData();
-
-    updateRowAmount(rowIndex);
-
-}
-
-function updateBal(rowIndex, value) {
-
-    rows[rowIndex].bal = value;
-
-    saveRowsData();
-
-    updateRowAmount(rowIndex);
-
-}
-
-function updateRowAmount(rowIndex) {
-
-    const rowAmount =
-        calculateRowAmount(
-            rows[rowIndex]
-        );
-
-    document.getElementById(
-        `amt-${rowIndex}`
-    ).innerText =
-        Math.round(rowAmount)
-            .toLocaleString();
-
-    updateTotals();
-
-}
-
-function updateTotals() {
-
-    let grandTotal = 0;
-
-    rows.forEach(r => {
-
-        grandTotal +=
-            calculateRowAmount(r);
-
-    });
-
-    document.getElementById(
-        'grand-total'
-    ).innerText =
-        Math.round(grandTotal)
-            .toLocaleString();
-
-}
-
-function clearAllData() {
-
-    if (
-        confirm(
-            "Are you sure you want to clear all quantities? (Names will be kept)"
-        )
-    ) {
-
-        rows.forEach(r => {
-
-            r.values = {
-                R: "",
-                P: "",
-                L: "",
-                M: "",
-                C: "",
-                BO: ""
-            };
-
-            r.pay = "";
-            r.bal = "";
-
-        });
-
-        saveRowsData();
-
-        renderApp();
-
-    }
-
-}
-
-function moveFocus(direction) {
-
-    const activeElement =
-        document.activeElement;
-
-    if (
-        !activeElement ||
-        activeElement.tagName !== 'INPUT'
-    ) {
-        return;
-    }
-
-    let r = -1;
-    let c = -1;
-    let isName = false;
-
-    if (
-        activeElement.id.includes('-name')
-    ) {
-
-        const parts =
-            activeElement.id.split('-');
-
-        r =
-            parseInt(parts[1]);
-
-        isName = true;
-
-    } else if (
-        activeElement.id.includes('-col-')
-    ) {
-
-        const parts =
-            activeElement.id.split('-');
-
-        r =
-            parseInt(parts[1]);
-
-        c =
-            parseInt(parts[3]);
-
-    } else if (
-        activeElement.id.includes('-pay')
-    ) {
+</div>  <script>  
+  
+let categories = [  
+    { key: 'R', name: 'R', price: 0, isPriceable: true },  
+    { key: 'P', name: 'P', price: 0, isPriceable: true },  
+    { key: 'L', name: 'L', price: 0, isPriceable: true },  
+    { key: 'M', name: 'M', price: 0, isPriceable: true },  
+    { key: 'C', name: 'C', price: 0, isPriceable: true },  
+    { key: 'BO', name: 'BO', price: 0, isPriceable: true },
+    { key: 'Pay', name: 'Pay', price: 0, isPriceable: false },
+    { key: 'Bal', name: 'Bal', price: 0, isPriceable: false }
+];  
+  
+let namesLocked = true;  
+  
+let rows = Array.from(  
+    { length: 25 },  
+    () => ({  
+        name: "",  
+        values: {  
+            R: "",  
+            P: "",  
+            L: "",  
+            M: "",  
+            C: "",  
+            BO: "",
+            Pay: "",
+            Bal: ""
+        }  
+    })  
+);  
+  
+let adminClicks = 0;  
+let clickTimer = null;  
+  
+function loadSavedData() {  
+  
+    const savedPrices =  
+        localStorage.getItem('master_list_prices');  
+  
+    if (savedPrices) {  
+  
+        try {  
+  
+            const parsedPrices =  
+                JSON.parse(savedPrices);  
+  
+            categories.forEach(cat => {  
+  
+                if (cat.isPriceable && parsedPrices[cat.key] !== undefined) {  
+                    cat.price = parsedPrices[cat.key];  
+                }  
+  
+            });  
+  
+        } catch (e) {  
+            console.error("Error loading prices", e);  
+        }  
+  
+    }  
+  
+    const savedRows =  
+        localStorage.getItem('master_list_rows');  
+  
+    if (savedRows) {  
+  
+        try {  
+  
+            const parsedRows =  
+                JSON.parse(savedRows);  
+  
+            if (  
+                Array.isArray(parsedRows) &&  
+                parsedRows.length === 25  
+            ) {  
+                rows = parsedRows;  
+            }  
+  
+        } catch (e) {  
+            console.error("Error loading rows", e);  
+        }  
+  
+    }  
+  
+}  
+  
+function renderApp() {  
+  
+    loadSavedData();  
+  
+    renderPricesConfig();  
+  
+    renderTableHeaders();  
+  
+    renderTableBody();  
+  
+    updateTotals();  
+  
+}  
+  
+function renderPricesConfig() {  
+  
+    const container =  
+        document.getElementById('prices-config');  
+  
+    container.innerHTML = '';  
+  
+    categories.forEach((cat, index) => {  
+        if (!cat.isPriceable) return;  
+  
+        container.innerHTML += `  
+            <div class="price-item">  
+  
+                <label>${cat.name} Price:</label>  
+  
+                <input  
+                    type="number"  
+                    step="any"  
+                    value="${cat.price === 0 ? '' : cat.price}"  
+                    oninput="updateCategoryPrice(${index}, this.value)">  
+  
+            </div>  
+        `;  
+  
+    });  
+  
+}  
+  
+function renderTableHeaders() {  
+  
+    const headerRow =  
+        document.getElementById('header-row');  
+  
+    let html = `  
+        <th  
+            class="name-col"  
+            id="secretHeader"  
+            style="cursor:pointer;"  
+            onclick="handleSecretTap()">  
+            Names  
+        </th>  
+    `;  
+  
+    categories.forEach(cat => {  
+        let colClass = 'qty-col';  
+        if (cat.key === 'Pay') colClass = 'pay-col';  
+        if (cat.key === 'Bal') colClass = 'bal-col';  
+
+        html += `  
+            <th class="${colClass}">  
+                <span>${cat.name}</span>  
+            </th>  
+        `;  
+  
+    });  
+  
+    html += `  
+        <th class="amount-col">  
+            Amt  
+        </th>  
+    `;  
+  
+    headerRow.innerHTML = html;  
+  
+}  
+  
+function renderTableBody() {  
+  
+    const tbody =  
+        document.getElementById('master-body');  
+  
+    tbody.innerHTML = '';  
+  
+    rows.forEach((row, rowIndex) => {  
+  
+        const rowAmount =  
+            calculateRowAmount(row);  
+  
+        const tr =  
+            document.createElement('tr');  
+  
+        const readonlyAttr =  
+            namesLocked ? 'readonly' : '';  
+  
+        let trHtml = `  
+            <td class="name-cell">  
+  
+                <input  
+                    type="text"  
+                    class="name-input"  
+                    id="row-${rowIndex}-name"  
+                    value="${row.name}"  
+                    ${readonlyAttr}  
+                    oninput="updateRowName(${rowIndex}, this.value)"  
+                    placeholder="...">  
+  
+            </td>  
+        `;  
+  
+        categories.forEach((cat, catIndex) => {  
+            let cellClass = 'qty-cell';  
+            if (cat.key === 'Pay') cellClass = 'pay-cell';  
+            if (cat.key === 'Bal') cellClass = 'bal-cell';  
+
+            const displayVal =  
+                row.values[cat.key] === 0 ||  
+                row.values[cat.key] === ""  
+                    ? ""  
+                    : row.values[cat.key];  
+  
+            trHtml += `  
+                <td class="${cellClass}">  
+  
+                    <input  
+                        type="number"  
+                        class="qty-input"  
+                        id="row-${rowIndex}-col-${catIndex}"  
+                        value="${displayVal}"  
+                        oninput="updateRowValue(${rowIndex}, '${cat.key}', this.value)">  
+  
+                </td>  
+            `;  
+  
+        });  
+  
+        trHtml += `  
+            <td  
+                class="amount-cell"  
+                id="amt-${rowIndex}">  
+                ${Math.round(rowAmount).toLocaleString()}  
+            </td>  
+        `;  
+  
+        tr.innerHTML = trHtml;  
+  
+        tbody.appendChild(tr);  
+  
+    });  
+  
+}  
+  
+function toggleNamesLock() {  
+  
+    namesLocked = !namesLocked;  
+  
+    const lockBtn =  
+        document.getElementById('lockBtn');  
+  
+    if (namesLocked) {  
+  
+        lockBtn.innerText = "🔒 Lock";  
+  
+        lockBtn.classList.remove('unlocked');  
+  
+    } else {  
+  
+        lockBtn.innerText = "🔓 Unlock";  
+  
+        lockBtn.classList.add('unlocked');  
+  
+    }  
+  
+    renderTableBody();  
+  
+}  
+  
+function calculateRowAmount(row) {  
+  
+    let otherCategoriesTotal = 0;  
+    let boValue = 0;  
+    let payValue = 0;  
+    let balValue = 0;  
+  
+    categories.forEach(cat => {  
+  
+        const val =  
+            parseFloat(row.values[cat.key]) || 0;  
+  
+        if (cat.key === 'BO') {  
+            boValue = (val / 2) * 45;  
+        } else if (cat.key === 'Pay') {  
+            payValue = val;  
+        } else if (cat.key === 'Bal') {  
+            balValue = val;  
+        } else {  
+            otherCategoriesTotal += val * cat.price;  
+        }  
+  
+    });  
+  
+    return otherCategoriesTotal - boValue - payValue + balValue;  
+  
+}  
+  
+function handleSecretTap() {  
+  
+    adminClicks++;  
+  
+    clearTimeout(clickTimer);  
+  
+    clickTimer =  
+        setTimeout(() => {  
+            adminClicks = 0;  
+        }, 600);  
+  
+    if (adminClicks >= 5) {  
+  
+        adminClicks = 0;  
+  
+        toggleAdminMode();  
+  
+    }  
+  
+}  
+  
+function toggleAdminMode() {  
+  
+    const configBox =  
+        document.getElementById('configBox');  
+  
+    configBox.classList.toggle('visible');  
+  
+}  
+  
+function updateCategoryPrice(index, value) {  
+  
+    categories[index].price =  
+        parseFloat(value) || 0;  
+  
+    let pricesObj = {};  
+  
+    categories.forEach(cat => {  
+        if (cat.isPriceable) {  
+            pricesObj[cat.key] = cat.price;  
+        }  
+    });  
+  
+    localStorage.setItem(  
+        'master_list_prices',  
+        JSON.stringify(pricesObj)  
+    );  
+  
+    updateTotals();  
+  
+}  
+  
+function saveRowsData() {  
+  
+    localStorage.setItem(  
+        'master_list_rows',  
+        JSON.stringify(rows)  
+    );  
+  
+}  
+  
+function updateRowName(rowIndex, value) {  
+  
+    rows[rowIndex].name = value;  
+  
+    saveRowsData();  
+  
+}  
+  
+function updateRowValue(  
+    rowIndex,  
+    catKey,  
+    value  
+) {  
+  
+    rows[rowIndex].values[catKey] =  
+        value;  
+  
+    saveRowsData();  
+  
+    const rowAmount =  
+        calculateRowAmount(  
+            rows[rowIndex]  
+        );  
+  
+    document.getElementById(  
+        `amt-${rowIndex}`  
+    ).innerText =  
+        Math.round(rowAmount)  
+            .toLocaleString();  
+  
+    updateTotals();  
+  
+}  
+  
+function updateTotals() {  
+  
+    let grandTotal = 0;  
+  
+    rows.forEach(r => {  
+  
+        grandTotal +=  
+            calculateRowAmount(r);  
+  
+    });  
+  
+    document.getElementById(  
+        'grand-total'  
+    ).innerText =  
+        Math.round(grandTotal)  
+            .toLocaleString();  
+  
+}  
+  
+function clearAllData() {  
+  
+    if (  
+        confirm(  
+            "Are you sure you want to clear all quantities? (Names will be kept)"  
+        )  
+    ) {  
+  
+        rows.forEach(r => {  
+  
+            r.values = {  
+                R: "",  
+                P: "",  
+                L: "",  
+                M: "",  
+                C: "",  
+                BO: "",
+                Pay: "",
+                Bal: ""
+            };  
+  
+        });  
+  
+        saveRowsData();  
+  
+        renderApp();  
+  
+    }  
+  
+}  
+  
+function moveFocus(direction) {  
+  
+    const activeElement =  
+        document.activeElement;  
+  
+    if (  
+        !activeElement ||  
+        activeElement.tagName !== 'INPUT'  
+    ) {  
+        return;  
+    }  
+  
+    let r = -1;  
+    let c = -1;  
+    let isName = false;  
+  
+    if (  
+        activeElement.id.includes('-name')  
+    ) {  
+  
+        const parts =  
+            activeElement.id.split('-');  
+  
+        r =  
+            parseInt(parts[1]);  
+  
+        isName = true;  
+  
+    } else if (  
+        activeElement.id.includes('-col-')  
+    ) {  
+  
+        const parts =  
+            activeElement.id.split('-');  
+  
+        r =  
+            parseInt(parts[1]);  
+  
+        c =  
+            parseInt(parts[3]);  
+  
+    } else {  
+  
+        return;  
+  
+    }  
+  
+    const maxRows =  
+        rows.length;  
+  
+    const maxCols =  
+        categories.length;  
+  
+    if (direction === 'up') {  
+  
+        r =  
+            Math.max(0, r - 1);  
+  
+    } else if (direction === 'down') {  
+  
+        r =  
+            Math.min(maxRows - 1, r + 1);  
+  
+    } else if (direction === 'left') {  
+  
+        if (isName) {  
+  
+            r =  
+                Math.max(0, r - 1);  
+  
+            isName = false;  
+  
+            c =  
+                maxCols - 1;  
+  
+        } else {  
+  
+            c--;  
+  
+            if (c < 0) {  
+  
+                isName = true;  
+  
+                c = -1;  
+  
+            }  
+  
+        }  
+  
+    } else if (direction === 'right') {  
+  
+        if (isName) {  
+  
+            isName = false;  
+  
+            c = 0;  
+  
+        } else {  
+  
+            c++;  
+  
+            if (c >= maxCols) {  
+  
+                c =  
+                    maxCols - 1;  
+  
+                if (r < maxRows - 1) {  
+  
+                    r++;  
+  
+                    isName = true;  
+                    c = -1;  
+  
+                }  
+  
+            }  
+  
+        }  
+  
+    }  
+  
+    const targetId =  
+        isName  
+            ? `row-${r}-name`  
+            : `row-${r}-col-${c}`;  
+  
+    const targetEl =  
+        document.getElementById(targetId);  
+  
+    if (targetEl) {  
+  
+        targetEl.focus();  
+  
+        targetEl.select();  
+  
+    }  
+  
+}  
+  
+  
+/* Start calculator */  
+  
+renderApp();  
+  
+  
+/* Register offline Service Worker */  
+  
+if ('serviceWorker' in navigator) {  
+  
+    window.addEventListener('load', function() {  
+  
+        navigator.serviceWorker  
+            .register('./sw.js')  
+            .then(function(registration) {  
+  
+                console.log(  
+                    'Master List offline service worker registered:',  
+                    registration.scope  
+                );  
+  
+            })  
+            .catch(function(error) {  
+  
+                console.error(  
+                    'Master List service worker registration failed:',  
+                    error  
+                );  
+  
+            });  
+  
+    });  
+  
+}  
+  
+</script>  </body>  
+</html
